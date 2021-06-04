@@ -6,7 +6,8 @@ Created on Sat May 15 20:30:04 2021
 """
 
 
-from InputOutput import InputOutput
+from InputHandler import InputHandler
+from OutputHandler import OutputHandler
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -17,23 +18,23 @@ from selenium.common.exceptions import NoSuchElementException, TimeoutException
 import requests, bs4
 import re
 from Person import Person
-import time
+import time, random
 
-def save(browser, searchData, results):
-            
+def save(browser, searchData, results):       
     for address, name in searchData.items():
         checkSearch = search(browser, address, name)
         if checkSearch == None:
             continue
         results.append(checkSearch)
         homePage = browser.find_element_by_xpath("//a[@title = 'Home Page']")
+        time.sleep(random.randrange(4,40))
         homePage.click()
     
     return results
         
     
 def search(browser, address, name):
-    fixString = InputOutput()
+    fixString = InputHandler()
     
     addressSearch = browser.find_element_by_id("search-nav-link-address")
     addressSearch.click()
@@ -53,11 +54,13 @@ def search(browser, address, name):
     while(True):
         try:
             personSearch = WebDriverWait(browser,10).until(EC.element_to_be_clickable((By.LINK_TEXT,name)))
+            time.sleep(random.randrange(4,40))
             personSearch.click()
             break
         except TimeoutException:
             try:
                 nxtBttn = browser.find_element_by_xpath("//a[@title = 'Next page of search results']")
+                time.sleep(random.randrange(4,40))
                 nxtBttn.click()
             except NoSuchElementException:
                 return None
@@ -121,9 +124,9 @@ def makePerson(name, numbers, addresses):
     
     
 if __name__ == '__main__':
-    io = InputOutput()
-    io.getInput('2 26 19 Skip Tracing.xlsx')
-    searchData = io.properties
+    ih = InputHandler()
+    ih.getInput('2 26 19 Skip Tracing.xlsx')
+    searchData = ih.properties
     
     option = Options()
     path_to_ad_block = r'C:\Users\rimes\OneDrive\Desktop\1.35.2_0'
@@ -131,6 +134,10 @@ if __name__ == '__main__':
     option.add_argument("--disable-infobars")
     option.add_argument("start-maximized")
     option.add_argument("load-extension=" + path_to_ad_block)
+    option.add_argument('--disable-blink-features = AutomationControlled')
+    option.add_argument("window-size=1280,800")
+    option.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36")
+    option.add_argument('user-data-dir = selenium')
 
     # Pass the argument 1 to allow and 2 to block
     option.add_experimental_option("prefs", { 
@@ -144,6 +151,10 @@ if __name__ == '__main__':
     
     results = []
     results = save(browser, searchData, results)
+    
+    oh = OutputHandler(results)
+    oh.postResults()
+    
     
     
     
